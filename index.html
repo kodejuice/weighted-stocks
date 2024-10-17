@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="Sochima Biereagu">
+
+  <title>Weighted Stocks Calculator</title>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FDNGLWKWV6"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-FDNGLWKWV6');
+  </script>
+
+  <style>
+    /* General Styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f4;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #007BFF;
+      outline: none;
+    }
+
+    .categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .categories label {
+      display: flex;
+      align-items: center;
+      font-weight: normal;
+      color: #555;
+    }
+
+    .categories input {
+      margin-right: 8px;
+      transform: scale(1.2);
+    }
+
+    .output {
+      margin-top: 25px;
+    }
+
+    .category-section {
+      margin-bottom: 30px;
+    }
+
+    .category-title {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      color: #007BFF;
+      border-bottom: 2px solid #007BFF;
+      padding-bottom: 5px;
+    }
+
+    .stocks-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .stock-card {
+      border: 2px solid #ddd;
+      /* Default border color */
+      border-radius: 5px;
+      padding: 10px 15px;
+      background-color: #fafafa;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      min-width: 120px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s, background-color 0.2s, border-color 0.3s;
+      position: relative;
+    }
+
+    .stock-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      background-color: #f0f8ff;
+    }
+
+    .stock-ticker {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .stock-amount {
+      color: #555;
+    }
+
+    .stock-card.removed {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .error {
+      color: red;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .reset-button {
+      margin-top: 20px;
+      padding: 10px 15px;
+      background-color: #dc3545;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .reset-button:hover {
+      background-color: #c82333;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      /* Hidden by default */
+      position: fixed;
+      /* Stay in place */
+      z-index: 1000;
+      /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%;
+      /* Full width */
+      height: 100%;
+      /* Full height */
+      overflow: auto;
+      /* Enable scroll if needed */
+      background-color: rgba(0, 0, 0, 0.5);
+      /* Black w/ opacity */
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 10% auto;
+      /* 10% from the top and centered */
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      /* Could be more or less, depending on screen size */
+      border-radius: 10px;
+      position: relative;
+    }
+
+    .close-modal {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      cursor: pointer;
+    }
+
+    .close-modal:hover,
+    .close-modal:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .learn-more-button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background-color: #28a745;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    .learn-more-button:hover {
+      background-color: #218838;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 600px) {
+      .stocks-container {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .stock-card {
+        width: 100%;
+      }
+
+      .modal-content {
+        width: 95%;
+        margin: 20% auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Weighted Stocks Calculator</h1>
+    <div class="input-group">
+      <label for="amount">Investment Amount:</label>
+      <input type="text" id="amount" placeholder="e.g., $1000 or 1000">
+    </div>
+    <div class="input-group">
+      <label>Select Categories:</label>
+      <div class="categories">
+        <label><input type="checkbox" value="NGN"> NGN</label>
+        <label><input type="checkbox" value="JPN"> JPN</label>
+        <label><input type="checkbox" value="CHN"> CHN</label>
+        <label><input type="checkbox" value="IND"> IND</label>
+        <label><input type="checkbox" value="CRYPTO"> CRYPTO</label>
+        <label><input type="checkbox" value="Misc"> Misc</label>
+      </div>
+    </div>
+    <div class="error" id="error"></div>
+    <div class="output" id="output"></div>
+    <button class="reset-button" id="reset-button" style="display:none;">Reset Removed Tickers</button>
+    <br />
+    <button class="learn-more-button" id="learn-more-button">Learn More</button>
+  </div>
+
+  <!-- Modal Structure -->
+  <div id="learn-more-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" id="close-modal">&times;</span>
+      <h2>Welcome to the Weighted Stocks Calculator</h2>
+      <p>
+        <strong>What is this Web Page About?</strong><br>
+        The Weighted Stocks Calculator helps you determine the optimal allocation of your investment across various
+        stock categories. By inputting your desired investment amount and selecting specific stock categories, the
+        calculator distributes your investment based on predefined weights, ensuring a balanced and strategic investment
+        portfolio.
+      </p>
+      <h3>Stocks Primer for Beginners</h3>
+      <p>
+        <strong>What are Stocks?</strong><br>
+        Stocks represent ownership shares in a company. When you purchase a stock, you become a shareholder, meaning you
+        own a portion of that company. Stocks are a popular investment vehicle because they offer the potential for
+        growth and income through dividends.
+      </p>
+      <p>
+        <strong>Why Invest in Stocks?</strong><br>
+        - <b>Growth Potential:</b> Stocks have the potential to increase in value over time, providing capital
+        gains.<br>
+        - <b>Dividends:</b> Some companies distribute a portion of their profits to shareholders as dividends.<br>
+        - <b>Diversification:</b> Investing in different stocks across various sectors and regions can help diversify
+        your investment portfolio, reducing risk.
+      </p>
+      <p>
+        <strong>Understanding Stock Categories:</strong><br>
+        - <b>NGN - Nigerian Stocks:</b> Represents shares of companies based in Nigeria.<br>
+        - <b>JPN - Japanese Stocks:</b> Represents shares of companies based in Japan.<br>
+        - <b>CHN - Chinese Stocks:</b> Represents shares of companies based in China.<br>
+        - <b>IND - Indian Stocks:</b> Represents shares of companies based in India.<br>
+        - <b>CRYPTO - Cryptocurrencies:</b> Represents digital or virtual currencies like Bitcoin, Ethereum, etc.<br>
+        - <b>Misc - Miscellaneous Stocks:</b> Represents a diverse range of stocks not categorized elsewhere, including
+        major US tech companies.
+      </p>
+      <h3>Recommended Investment Platforms</h3>
+      <p>
+        To start investing in stocks, you can use various apps and platforms that facilitate easy and secure
+        transactions. Here are some recommended options:
+      </p>
+      <ul>
+        <li>
+          <strong>Trove:</strong> An investment platform that offers a variety of investment options, including unit
+          trusts and ETFs. It provides an easy-to-use interface for both beginners and experienced investors.<br />
+          <a href="https://troveapp.co" target="_blank">Visit Trove</a>
+        </li>
+        <li>
+          <strong>Bamboo:</strong> An investment platform that allows users to invest in local and international stocks.
+          Bamboo is known for its user-friendly app and educational resources that help investors make informed
+          decisions.<br />
+          <a href="https://www.investbamboo.co.za" target="_blank">Visit Bamboo</a>
+        </li>
+        <!-- You can add more platforms here -->
+      </ul>
+      <h3>How to Use the Weighted Stocks Calculator</h3>
+      <ol>
+        <li><strong>Enter Investment Amount:</strong> Input the total amount you wish to invest. You can include a
+          currency symbol (e.g., $1000) or just the number (e.g., 1000).</li>
+        <li><strong>Select Categories:</strong> Choose one or more stock categories that align with your investment
+          goals.</li>
+        <li><strong>View Allocations:</strong> The calculator will display a list of recommended stocks to invest in,
+          along with the amount allocated to each based on predefined weights.</li>
+        <li><strong>Customize Your Portfolio:</strong> Click on any stock ticker to remove it from your allocation if
+          you prefer not to invest in it. The allocations will automatically adjust to distribute your investment among
+          the remaining stocks.</li>
+        <li><strong>Reset Removed Tickers:</strong> If you wish to restore all removed tickers, click the "Reset Removed
+          Tickers" button.</li>
+      </ol>
+      <p>
+        <em>Note: This tool provides recommendations based on predefined weights and should not be considered financial
+          advice. Always conduct your own research or consult a financial advisor before making investment
+          decisions.</em>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Category Descriptions
+    const categoryDescriptions = {
+      'NGN': 'Nigerian Stocks',
+      'JPN': 'Japanese Stocks',
+      'CHN': 'Chinese Stocks',
+      'IND': 'Indian Stocks',
+      'CRYPTO': 'Cryptocurrencies',
+      'Misc': 'Miscellaneous Stocks'
+    };
+
+    // Function to map weight to border color
+    function getBorderColor(weight) {
+      // Normalize weight to range 0-1
+      const normalizedWeight = weight / 100;
+      // Calculate lightness: higher weight -> lower lightness
+      const lightness = 70 - (normalizedWeight * 45); // 70% to 25%
+      // Saturation: higher weight -> higher saturation
+      const saturation = 30 + (normalizedWeight * 70); // 30% to 100%
+      return `hsl(120, ${saturation}%, ${lightness}%)`;
+    }
+
+    // Initialize excluded tickers as an empty set
+    let excludedTickers = new Set();
+
+    // Function to get amount and currency symbol
+    function getAmountCurrency(amount) {
+      amount = amount.trim();
+      if (amount.length === 0) return { amount: 0, symbol: '#' };
+      const firstChar = amount[0];
+      if (!isNaN(firstChar)) {
+        // No currency symbol
+        return { amount: parseFloat(amount.replace(/,/g, '')), symbol: '#' };
+      }
+      return { amount: parseFloat(amount.slice(1).replace(/,/g, '')), symbol: firstChar };
+    }
+
+    // Function to apply weights and exclude tickers
+    function applyWeightsGivenAmt(amount, category, currencySymbol, assets) {
+      if (!(category in assets)) return [];
+
+      let result = [];
+      assets[category].forEach(group => {
+        // Filter out excluded tickers
+        const availableTickers = group.tickers.filter(ticker => !excludedTickers.has(ticker));
+        if (availableTickers.length === 0) return; // Skip if no tickers left in this group
+
+        const totalWeight = group.weight;
+        const amt = (totalWeight / 100) * amount;
+        const individualAmt = parseFloat((amt / availableTickers.length).toFixed(2));
+        availableTickers.forEach(ticker => {
+          result.push({ ticker, amount: `${currencySymbol}${individualAmt.toLocaleString()}`, weight: totalWeight });
+        });
+      });
+      return result;
+    }
+
+    // Function to render the output
+    function renderOutput(results) {
+      const outputDiv = document.getElementById('output');
+      outputDiv.innerHTML = ''; // Clear previous results
+
+      if (results.length === 0) {
+        outputDiv.innerHTML = '<p>No categories selected or invalid amount.</p>';
+        return;
+      }
+
+      results.forEach(categoryResult => {
+        const category = categoryResult.category;
+        const stocks = categoryResult.stocks;
+
+        // Create category section
+        const categorySection = document.createElement('div');
+        categorySection.className = 'category-section';
+
+        // Category title with description
+        const categoryTitle = document.createElement('div');
+        categoryTitle.className = 'category-title';
+        categoryTitle.textContent = `${category} - (${categoryDescriptions[category]})`;
+        categorySection.appendChild(categoryTitle);
+
+        // Stocks container
+        const stocksContainer = document.createElement('div');
+        stocksContainer.className = 'stocks-container';
+
+        stocks.forEach(stock => {
+          const stockCard = document.createElement('div');
+          stockCard.className = 'stock-card';
+          stockCard.setAttribute('data-ticker', stock.ticker);
+
+          const stockTicker = document.createElement('div');
+          stockTicker.className = 'stock-ticker';
+          stockTicker.textContent = stock.ticker;
+
+          const stockAmount = document.createElement('div');
+          stockAmount.className = 'stock-amount';
+          stockAmount.textContent = stock.amount;
+
+          // Set border color based on weight
+          stockCard.style.borderColor = getBorderColor(stock.weight);
+
+          stockCard.appendChild(stockTicker);
+          stockCard.appendChild(stockAmount);
+
+          // Add click event to remove ticker with confirmation
+          stockCard.addEventListener('click', () => {
+            const confirmRemoval = confirm(`Are you sure you want to remove ${stock.ticker}?`);
+            if (confirmRemoval) {
+              removeTicker(stock.ticker);
+            }
+          });
+
+          stocksContainer.appendChild(stockCard);
+        });
+
+        categorySection.appendChild(stocksContainer);
+        outputDiv.appendChild(categorySection);
+      });
+    }
+
+    // Function to handle calculation
+    function calculate(assets) {
+      const amountInput = document.getElementById('amount').value;
+      const { amount, symbol } = getAmountCurrency(amountInput);
+      const errorDiv = document.getElementById('error');
+      const outputDiv = document.getElementById('output');
+      const resetButton = document.getElementById('reset-button');
+      errorDiv.textContent = '';
+      outputDiv.textContent = '';
+
+      if (isNaN(amount) || amount <= 0) {
+        errorDiv.textContent = 'Please enter a valid positive amount.';
+        renderOutput([]);
+        return;
+      }
+
+      const selectedCategories = Array.from(document.querySelectorAll('.categories input:checked')).map(cb => cb.value);
+      if (selectedCategories.length === 0) {
+        errorDiv.textContent = 'Please select at least one category.';
+        renderOutput([]);
+        return;
+      }
+
+      // Check for valid categories
+      const invalidCategories = selectedCategories.filter(cat => !(cat in assets));
+      if (invalidCategories.length > 0) {
+        errorDiv.textContent = `Invalid categories selected: ${invalidCategories.join(', ')}`;
+        renderOutput([]);
+        return;
+      }
+
+      const categoriesCount = selectedCategories.length;
+      const amountForEachCategory = parseFloat((amount / categoriesCount).toFixed(2));
+
+      let results = [];
+      selectedCategories.forEach(category => {
+        const categoryResults = applyWeightsGivenAmt(amountForEachCategory, category, symbol, assets);
+        if (categoryResults.length > 0) {
+          results.push({
+            category: category,
+            stocks: categoryResults
+          });
+        }
+      });
+
+      renderOutput(results);
+
+      // Show or hide reset button based on excludedTickers
+      if (excludedTickers.size > 0) {
+        resetButton.style.display = 'inline-block';
+      } else {
+        resetButton.style.display = 'none';
+      }
+    }
+
+    // Function to remove a ticker
+    function removeTicker(ticker) {
+      excludedTickers.add(ticker);
+      calculate(currentAssets);
+    }
+
+    // Function to reset excluded tickers
+    function resetExcludedTickers() {
+      excludedTickers.clear();
+      calculate(currentAssets);
+    }
+
+    // Debounce function to limit the rate of function execution
+    function debounce(func, delay) {
+      let debounceTimer;
+      return function () {
+        const context = this;
+        const args = arguments;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => func.apply(context, args), delay);
+      }
+    }
+
+    // Modal Functionality
+    const modal = document.getElementById('learn-more-modal');
+    const openModalButton = document.getElementById('learn-more-button');
+    const closeModalButton = document.getElementById('close-modal');
+
+    // Function to open modal
+    function openModal() {
+      modal.style.display = 'block';
+    }
+
+    // Function to close modal
+    function closeModal() {
+      modal.style.display = 'none';
+    }
+
+    // Event listener for opening modal
+    openModalButton.addEventListener('click', openModal);
+
+    // Event listener for closing modal when clicking on 'x'
+    closeModalButton.addEventListener('click', closeModal);
+
+    // Event listener for closing modal when clicking outside the modal content
+    window.addEventListener('click', (event) => {
+      if (event.target == modal) {
+        closeModal();
+      }
+    });
+
+    // Variable to store the loaded assets
+    let currentAssets = {};
+
+    // Function to initialize the calculator after loading assets
+    function initializeCalculator() {
+      // Event listeners for dynamic recalculation
+      document.getElementById('amount').addEventListener('input', debounce(() => calculate(currentAssets), 300));
+      const categoryCheckboxes = document.querySelectorAll('.categories input');
+      categoryCheckboxes.forEach(cb => {
+        cb.addEventListener('change', () => calculate(currentAssets));
+      });
+
+      // Event listener for reset button
+      document.getElementById('reset-button').addEventListener('click', resetExcludedTickers);
+
+      // Initial calculation (optional)
+      // calculate(currentAssets);
+    }
+
+    // Fetch the assets data from assets.json (https://gist.github.com/kodejuice/fd60a1995d073056667a020faf082436)
+    fetch('https://gist.githubusercontent.com/kodejuice/fd60a1995d073056667a020faf082436/raw/bd2c0af18e660f3c51f4b92b646c45379e0fcb6a/assets.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        currentAssets = data;
+        initializeCalculator();
+      })
+      .catch(error => {
+        console.error('Error fetching assets data:', error);
+        document.getElementById('error').textContent = 'Failed to load assets data. Please try again later.';
+      });
+  </script>
+</body>
+
+</html>

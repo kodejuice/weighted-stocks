@@ -24,18 +24,21 @@
     /* General Styles */
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      margin: 0;
+      padding: 0;
       background-color: #f4f4f4;
+      line-height: 1.6;
     }
 
     h1 {
       text-align: center;
       color: #333;
+      margin-bottom: 20px;
     }
 
     .container {
       max-width: 900px;
-      margin: auto;
+      margin: 20px auto;
       background: white;
       padding: 25px;
       border-radius: 10px;
@@ -51,12 +54,13 @@
       margin-bottom: 8px;
       font-weight: bold;
       color: #555;
+      font-size: 1rem;
     }
 
     input[type="text"] {
       width: 100%;
-      padding: 10px;
-      font-size: 16px;
+      padding: 12px 10px;
+      font-size: 1rem;
       box-sizing: border-box;
       border: 2px solid #ddd;
       border-radius: 5px;
@@ -79,6 +83,7 @@
       align-items: center;
       font-weight: normal;
       color: #555;
+      font-size: 0.9rem;
     }
 
     .categories input {
@@ -110,7 +115,6 @@
 
     .stock-card {
       border: 2px solid #ddd;
-      /* Default border color */
       border-radius: 5px;
       padding: 10px 15px;
       background-color: #fafafa;
@@ -120,6 +124,7 @@
       cursor: pointer;
       transition: transform 0.2s, background-color 0.2s, border-color 0.3s;
       position: relative;
+      flex: 1 1 calc(25% - 20px); /* Responsive sizing */
     }
 
     .stock-card:hover {
@@ -151,12 +156,18 @@
 
     .reset-button {
       margin-top: 20px;
-      padding: 10px 15px;
+      padding: 12px 20px;
       background-color: #dc3545;
       border: none;
       color: white;
       cursor: pointer;
       border-radius: 4px;
+      font-size: 1rem;
+      width: 100%;
+      max-width: 300px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .reset-button:hover {
@@ -185,14 +196,17 @@
 
     .modal-content {
       background-color: #fefefe;
-      margin: 10% auto;
-      /* 10% from the top and centered */
+      margin: 5% auto;
+      /* 5% from the top and centered */
       padding: 20px;
       border: 1px solid #888;
-      width: 80%;
+      width: 90%;
+      max-width: 800px;
       /* Could be more or less, depending on screen size */
       border-radius: 10px;
       position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     .close-modal {
@@ -215,13 +229,18 @@
 
     .learn-more-button {
       margin-top: 30px;
-      padding: 10px 20px;
+      padding: 12px 20px;
       background-color: #28a745;
       border: none;
       color: white;
       cursor: pointer;
       border-radius: 4px;
-      font-size: 16px;
+      font-size: 1rem;
+      width: 100%;
+      max-width: 300px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .learn-more-button:hover {
@@ -229,19 +248,59 @@
     }
 
     /* Responsive Styles */
-    @media (max-width: 600px) {
-      .stocks-container {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
+    @media (max-width: 992px) {
       .stock-card {
-        width: 100%;
+        flex: 1 1 calc(33.333% - 20px);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .stock-card {
+        flex: 1 1 calc(50% - 20px);
       }
 
-      .modal-content {
-        width: 95%;
-        margin: 20% auto;
+      .container {
+        padding: 20px;
+      }
+
+      .category-title {
+        font-size: 1.1em;
+      }
+
+      label {
+        font-size: 0.95rem;
+      }
+
+      input[type="text"],
+      .reset-button,
+      .learn-more-button {
+        font-size: 0.95rem;
+        padding: 10px 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stock-card {
+        flex: 1 1 100%;
+      }
+
+      .categories {
+        flex-direction: column;
+      }
+
+      .categories label {
+        font-size: 0.9rem;
+      }
+
+      input[type="text"] {
+        padding: 10px;
+        font-size: 0.95rem;
+      }
+
+      .reset-button,
+      .learn-more-button {
+        padding: 10px 15px;
+        font-size: 0.95rem;
       }
     }
   </style>
@@ -382,9 +441,11 @@
       const firstChar = amount[0];
       if (!isNaN(firstChar)) {
         // No currency symbol
-        return { amount: parseFloat(amount.replace(/,/g, '')), symbol: '#' };
+        const num = parseFloat(amount.replace(/,/g, ''));
+        return isNaN(num) ? { amount: 0, symbol: '#' } : { amount: num, symbol: '#' };
       }
-      return { amount: parseFloat(amount.slice(1).replace(/,/g, '')), symbol: firstChar };
+      const num = parseFloat(amount.slice(1).replace(/,/g, ''));
+      return { amount: isNaN(num) ? 0 : num, symbol: firstChar };
     }
 
     // Function to apply weights and exclude tickers
@@ -519,7 +580,7 @@
 
       // Show or hide reset button based on excludedTickers
       if (excludedTickers.size > 0) {
-        resetButton.style.display = 'inline-block';
+        resetButton.style.display = 'block';
       } else {
         resetButton.style.display = 'none';
       }
@@ -590,12 +651,9 @@
 
       // Event listener for reset button
       document.getElementById('reset-button').addEventListener('click', resetExcludedTickers);
-
-      // Initial calculation (optional)
-      // calculate(currentAssets);
     }
-
-    // Fetch the assets data from assets.json (https://gist.github.com/kodejuice/fd60a1995d073056667a020faf082436)
+    
+    // Fetch the assets data from assets.json (see https://gist.github.com/kodejuice/fd60a1995d073056667a020faf082436)
     fetch('https://gist.githubusercontent.com/kodejuice/fd60a1995d073056667a020faf082436/raw/bd2c0af18e660f3c51f4b92b646c45379e0fcb6a/assets.json')
       .then(response => {
         if (!response.ok) {

@@ -438,15 +438,24 @@
     // Function to get amount and currency symbol
     function getAmountCurrency(amount) {
       amount = amount.trim();
-      if (amount.length === 0) return { amount: 0, symbol: '#' };
+      if (amount.length === 0) return { amount: 0, symbol: '₦' };
       const firstChar = amount[0];
       if (!isNaN(firstChar)) {
         // No currency symbol
         const num = parseFloat(amount.replace(/,/g, ''));
-        return isNaN(num) ? { amount: 0, symbol: '#' } : { amount: num, symbol: '#' };
+        return isNaN(num) ? { amount: 0, symbol: '₦' } : { amount: num, symbol: '₦' };
       }
       const num = parseFloat(amount.slice(1).replace(/,/g, ''));
       return { amount: isNaN(num) ? 0 : num, symbol: firstChar };
+    }
+
+    function randomInt(from, to) {
+      // return the same random number for every 3-hour window
+      const hoursSinceEpoch = Math.floor(Date.now() / (3 * 60 * 60 * 1000)); // each 3-hour window
+      const seed = hoursSinceEpoch; // constant within that window
+      const x = Math.sin(seed) * 10000; // simple pseudo-random generator
+      const rand = x - Math.floor(x); // fractional part between 0 and 1
+      return from + Math.floor(rand * (to - from));
     }
 
     // Function to apply weights and exclude tickers
@@ -458,13 +467,35 @@
         // Filter out excluded tickers
         const availableTickers = group.tickers.filter(ticker => !excludedTickers.has(ticker));
         if (availableTickers.length === 0) return; // Skip if no tickers left in this group
+        const tickersCount = availableTickers.length;
 
         const totalWeight = group.weight;
         const amt = (totalWeight / 100) * amount;
-        const individualAmt = parseFloat((amt / availableTickers.length).toFixed(2));
+
+        let totalPercentage = 100;
+
+        availableTickers.sort((x,y)=>randomInt(-1*x, 1*y));
+        for (let i=0; i<tickersCount; i+=1) {
+          const ticker = availableTickers[i];
+
+          let v = 0;
+          if (i === tickersCount-1) {
+            // last ticker
+            const percent = totalPercentage / 100;
+            v = percent * amt;
+          } else {
+            const randomPercentage = randomInt(1, totalPercentage / 2);
+            totalPercentage -= randomPercentage;
+            v = (randomPercentage / 100) * amt;
+          }
+
+          result.push({ ticker, amount: `${currencySymbol}${v.toLocaleString()}`, weight: totalWeight });
+        }
+
+        /* const individualAmt = parseFloat((amt / availableTickers.length).toFixed(2));
         availableTickers.forEach(ticker => {
           result.push({ ticker, amount: `${currencySymbol}${individualAmt.toLocaleString()}`, weight: totalWeight });
-        });
+        });*/
       });
       return result;
     }

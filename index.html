@@ -484,7 +484,8 @@
             const percent = totalPercentage / 100;
             v = percent * amt;
           } else {
-            const randomPercentage = randomInt(1, totalPercentage / 2);
+            const minPercent = Math.min(10, totalPercent / 2);
+            const randomPercentage = randomInt(minPercent, totalPercentage / 2);
             totalPercentage -= randomPercentage;
             v = (randomPercentage / 100) * amt;
           }
